@@ -6,12 +6,26 @@
 using namespace cv;
 using namespace std;
 vector<string> Input_fn; 
-//vector<string> Groundtruth_fn;
 
 #define n 10
 //#define TH 0.078f    //20
-//#define TH 0.196f    //50
-#define TH 0.392f    //100
+#define TH 0.196f    //50
+//#define TH 0.392f    //100
+
+Mat img2binary(Mat img)
+{
+	img.convertTo(img, CV_32FC3, 1 / 255.0);		// 转f32
+	cvtColor(img, img, COLOR_BGR2GRAY);
+	threshold(img, img, 0.5f, 1.0f, THRESH_BINARY);		//Groundtruth 转2值
+	return img;
+}
+
+string num2str(int i)
+{
+	char ss[10];
+	sprintf_s(ss, "%05d", i);
+	return ss;
+}
 
 vector<Mat> mean_filter(void)
 {
@@ -23,11 +37,6 @@ vector<Mat> mean_filter(void)
 	for (int i = 0; i < Input_fn.size(); i++)
 	{
 		Mat img = imread(Input_fn[i]);
-
-//		Mat img_gt = imread(Groundtruth_fn[i]);
-//		img_gt.convertTo(img_gt, CV_32FC3, 1 / 255.0);		// 转f32
-//		cvtColor(img_gt, img_gt, COLOR_BGR2GRAY);
-//		threshold(img_gt, img_gt, 0.5f, 1.0f, THRESH_BINARY);		//Groundtruth 转2值
 
 		img.convertTo(img, CV_32FC3, 1 / 255.0);		// 转f32
 		if (i >= n)
@@ -44,7 +53,7 @@ vector<Mat> mean_filter(void)
 			// 写图片
 			mask.convertTo(mask, CV_8UC3, 255.0);
 			string suffix = ".png";
-			string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\mean_mask\\100\\mask_TH_100_" + to_string(i) + suffix;
+			string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\mean_mask\\50\\mask_" + num2str(i) + suffix;
 			imwrite(wdir,mask);
 
 			Img_buf.pop_back();
@@ -75,7 +84,7 @@ vector<Mat> momentum_filter(void)
 		// 写图片
 		mask.convertTo(mask, CV_8UC3, 255.0);
 		string suffix = ".png";
-		string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\momentum_mask\\100\\mask_TH_100_" + to_string(i) + suffix;
+		string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\momentum_mask\\50\\mask_" + num2str(i) + suffix;
 		imwrite(wdir, mask);
 
 		momentum_result.push_back(mask);
@@ -83,20 +92,63 @@ vector<Mat> momentum_filter(void)
 	return momentum_result;
 }
 
+
+
+vector<float> cal_IoU(string mask_dir,string groundtruth_dir)
+{
+	vector<string> Groundtruth_fn,mask_fn;
+
+	vector<float> IoU;
+	glob(groundtruth_dir, Groundtruth_fn, false);
+	glob(mask_dir, mask_fn, false);
+
+	for (int i = 470; i < Groundtruth_fn.size()-n; i++) // 从470开始
+//		for (int i = 470; i < 1000; i++) // 从470开始
+
+	{
+		Mat img_gt = imread(Groundtruth_fn[i]);
+		Mat mask = imread(mask_fn[i]);
+
+		img_gt = img2binary(img_gt);  // 2值 f32
+		mask = img2binary(mask);
+
+		float I = countNonZero(img_gt & mask);
+		float U = countNonZero(img_gt | mask);
+		float iou = I / U;
+		IoU.push_back(iou);
+	}
+	return IoU;
+}
+
 int main()
 {
 	string Input_dir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\input\\*.jpg";
-//	string Groundtruth_dir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\groundtruth\\*.png";
+	string Groundtruth_dir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\groundtruth\\*.png";
+	string mean_mask_th_20_dir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\mean_mask\\20\\*.png";
+	string mean_mask_th_50_dir = "t:\\专业课\\视频技术\\highway\\cv_helloword\\highway\\mean_mask\\50\\*.png";
+	string mean_mask_th_100_dir = "t:\\专业课\\视频技术\\highway\\cv_helloword\\highway\\mean_mask\\100\\*.png";
+	string momentum_mask_th_20_dir = "t:\\专业课\\视频技术\\highway\\cv_helloword\\highway\\momentum_mask\\20\\*.png";
+	string momentum_mask_th_50_dir = "t:\\专业课\\视频技术\\highway\\cv_helloword\\highway\\momentum_mask\\50\\*.png";
+	string momentum_mask_th_100_dir = "t:\\专业课\\视频技术\\highway\\cv_helloword\\highway\\momentum_mask\\100\\*.png";
+
 
 	vector<Mat> images;
 	Mat temp;
 	glob(Input_dir, Input_fn, false);
-//	glob(Groundtruth_dir, Groundtruth_fn, false);
 
 // 写图像的时候调用
 //	vector<Mat> mean_bg = mean_filter();
 //	vector<Mat> momentum_bg = momentum_filter();
 
+
+//	vector<float> iou = cal_IoU(mean_mask_th_20_dir, Groundtruth_dir);
+	vector<float> iou = cal_IoU(momentum_mask_th_20_dir, Groundtruth_dir);
+//	vector<float> iou = cal_IoU(mean_mask_th_100_dir, Groundtruth_dir);
+
+	for (int i = 0; i < 1000; i++)
+	{
+		cout << iou[i]<<"\t";
+	}
 	waitKey(-1);
 	return 0;
 }
