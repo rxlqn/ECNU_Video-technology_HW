@@ -53,7 +53,7 @@ vector<Mat> mean_filter(void)
 			// 写图片
 			mask.convertTo(mask, CV_8UC3, 255.0);
 			string suffix = ".png";
-			string wdir = "T:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\mean_mask\\20\\mask_" + num2str(i) + suffix;
+			string wdir = "..\\highway\\mean_mask\\20\\mask_" + num2str(i) + suffix;
 			imwrite(wdir,mask);
 
 			Img_buf.pop_front();
@@ -84,7 +84,7 @@ vector<Mat> momentum_filter(void)
 		// 写图片
 		mask.convertTo(mask, CV_8UC3, 255.0);
 		string suffix = ".png";
-		string wdir = "T:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\momentum_mask\\20\\mask_" + num2str(i) + suffix;
+		string wdir = "..\\highway\\momentum_mask\\20\\mask_" + num2str(i) + suffix;
 		imwrite(wdir, mask);
 
 		momentum_result.push_back(mask);
@@ -122,14 +122,14 @@ vector<float> cal_IoU(string mask_dir,string groundtruth_dir)
 
 int main()
 {
-	string Input_dir = "T:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\input\\*.jpg";
-	string Groundtruth_dir = "T:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\groundtruth\\*.png";
-	string mean_mask_th_20_dir = "T:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\mean_mask\\20\\*.png";
-	string mean_mask_th_50_dir = "t:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\mean_mask\\50\\*.png";
-	string mean_mask_th_100_dir = "t:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\mean_mask\\100\\*.png";
-	string momentum_mask_th_20_dir = "t:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\momentum_mask\\20\\*.png";
-	string momentum_mask_th_50_dir = "t:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\momentum_mask\\50\\*.png";
-	string momentum_mask_th_100_dir = "t:\\专业课\\视频技术\\highway\\cv_helloworld\\highway\\momentum_mask\\100\\*.png";
+	string Input_dir = "..\\highway\\input\\*.jpg";
+	string Groundtruth_dir = "..\\highway\\groundtruth\\*.png";
+	string mean_mask_th_20_dir = "..\\highway\\mean_mask\\20\\*.png";
+	string mean_mask_th_50_dir = "..\\highway\\mean_mask\\50\\*.png";
+	string mean_mask_th_100_dir = "..\\highway\\mean_mask\\100\\*.png";
+	string momentum_mask_th_20_dir = "..\\highway\\momentum_mask\\20\\*.png";
+	string momentum_mask_th_50_dir = "..\\highway\\momentum_mask\\50\\*.png";
+	string momentum_mask_th_100_dir = "..\\highway\\momentum_mask\\100\\*.png";
 
 
 	vector<Mat> images;
