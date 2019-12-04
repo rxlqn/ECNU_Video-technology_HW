@@ -3,14 +3,16 @@
 #include <string>
 #include <opencv2/core/core.hpp>  
 #include <opencv2/highgui/highgui.hpp>  
+#include<numeric>
+
 using namespace cv;
 using namespace std;
 vector<string> Input_fn; 
 
 #define n 100
-#define TH 0.078f    //20
+//#define TH 0.078f    //20
 //#define TH 0.196f    //50
-//#define TH 0.392f    //100
+#define TH 0.392f    //100
 
 Mat img2binary(Mat img)
 {
@@ -53,7 +55,7 @@ vector<Mat> mean_filter(void)
 			// 写图片
 			mask.convertTo(mask, CV_8UC3, 255.0);
 			string suffix = ".png";
-			string wdir = "..\\highway\\mean_mask\\20\\mask_" + num2str(i) + suffix;
+			string wdir = "..\\highway\\mean_mask\\100\\mask_" + num2str(i) + suffix;
 			imwrite(wdir,mask);
 
 			Img_buf.pop_front();
@@ -84,7 +86,7 @@ vector<Mat> momentum_filter(void)
 		// 写图片
 		mask.convertTo(mask, CV_8UC3, 255.0);
 		string suffix = ".png";
-		string wdir = "..\\highway\\momentum_mask\\20\\mask_" + num2str(i) + suffix;
+		string wdir = "..\\highway\\momentum_mask\\100\\mask_" + num2str(i) + suffix;
 		imwrite(wdir, mask);
 
 		momentum_result.push_back(mask);
@@ -94,7 +96,7 @@ vector<Mat> momentum_filter(void)
 
 
 
-vector<float> cal_IoU(string mask_dir,string groundtruth_dir)
+vector<float> cal_IoU(string mask_dir,string groundtruth_dir,bool flag)
 {
 	vector<string> Groundtruth_fn,mask_fn;
 
@@ -103,10 +105,12 @@ vector<float> cal_IoU(string mask_dir,string groundtruth_dir)
 	glob(mask_dir, mask_fn, false);
 
 	for (int i = 470; i < Groundtruth_fn.size()-n; i++) // 从470开始
-//		for (int i = 470; i < 1000; i++) // 从470开始
-
 	{
-		Mat img_gt = imread(Groundtruth_fn[i+n]);
+		Mat img_gt;
+		if (flag == 1)
+			img_gt = imread(Groundtruth_fn[i + n]);			// GT 和 mask 照片对齐
+		else
+			img_gt = imread(Groundtruth_fn[i]);
 		Mat mask = imread(mask_fn[i]);
 
 		img_gt = img2binary(img_gt);  // 2值 f32
@@ -118,6 +122,12 @@ vector<float> cal_IoU(string mask_dir,string groundtruth_dir)
 		IoU.push_back(iou);
 	}
 	return IoU;
+}
+
+float getAvg(vector<float> iou)
+{
+	return accumulate(iou.begin(), iou.end(), 0.0)/iou.size();
+
 }
 
 int main()
@@ -137,18 +147,31 @@ int main()
 	glob(Input_dir, Input_fn, false);
 
 // 写图像的时候调用
-	//vector<Mat> mean_bg = mean_filter();
-	//vector<Mat> momentum_bg = momentum_filter();
+	/*vector<Mat> mean_bg = mean_filter();
+	vector<Mat> momentum_bg = momentum_filter();*/
 
 
-	vector<float> iou = cal_IoU(mean_mask_th_20_dir, Groundtruth_dir);
-//	vector<float> iou = cal_IoU(momentum_mask_th_20_dir, Groundtruth_dir);
-//	vector<float> iou = cal_IoU(mean_mask_th_100_dir, Groundtruth_dir);
+	vector<float> mean_20 = cal_IoU(mean_mask_th_20_dir, Groundtruth_dir,1);
+	vector<float> mean_50 = cal_IoU(mean_mask_th_50_dir, Groundtruth_dir,1);
+	vector<float> mean_100 = cal_IoU(mean_mask_th_100_dir, Groundtruth_dir,1);
+	vector<float> momt_20 = cal_IoU(momentum_mask_th_20_dir, Groundtruth_dir,0);
+	vector<float> momt_50 = cal_IoU(momentum_mask_th_50_dir, Groundtruth_dir,0);
+	vector<float> momt_100 = cal_IoU(momentum_mask_th_100_dir, Groundtruth_dir,0);
 
-	for (int i = 0; i < 1000; i++)
-	{
-		cout << iou[i]<<"\t";
-	}
+	float IoU1 = getAvg(mean_20);
+	float IoU2 = getAvg(mean_50);
+	float IoU3 = getAvg(mean_100);
+	float IoU4 = getAvg(momt_20);
+	float IoU5 = getAvg(momt_50);
+	float IoU6 = getAvg(momt_100);
+
+	cout << "mean_filter TH = 20    " << "\t"<<IoU1<<endl;
+	cout << "mean_filter TH = 50    " << "\t" << IoU2 << endl;
+	cout << "mean_filter TH = 100   " << "\t" << IoU3 << endl;
+	cout << "momentum_filter TH = 20" << "\t" << IoU4 << endl;
+	cout << "momentum_filter TH = 500" << "\t" << IoU5 << endl;
+	cout << "momentum_filter TH = 100" << "\t" << IoU6 << endl;
+
 	waitKey(-1);
 	return 0;
 }
