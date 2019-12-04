@@ -7,9 +7,9 @@ using namespace cv;
 using namespace std;
 vector<string> Input_fn; 
 
-#define n 10
-//#define TH 0.078f    //20
-#define TH 0.196f    //50
+#define n 100
+#define TH 0.078f    //20
+//#define TH 0.196f    //50
 //#define TH 0.392f    //100
 
 Mat img2binary(Mat img)
@@ -30,7 +30,7 @@ string num2str(int i)
 vector<Mat> mean_filter(void)
 {
 	vector<Mat> mean_result;
-	vector<Mat> Img_buf;
+	deque<Mat> Img_buf;
 
 	Mat mask;
 
@@ -53,10 +53,10 @@ vector<Mat> mean_filter(void)
 			// 写图片
 			mask.convertTo(mask, CV_8UC3, 255.0);
 			string suffix = ".png";
-			string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\mean_mask\\50\\mask_" + num2str(i) + suffix;
+			string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\mean_mask\\20\\mask_" + num2str(i) + suffix;
 			imwrite(wdir,mask);
 
-			Img_buf.pop_back();
+			Img_buf.pop_front();
 		}
 		Img_buf.push_back(img);
 
@@ -84,7 +84,7 @@ vector<Mat> momentum_filter(void)
 		// 写图片
 		mask.convertTo(mask, CV_8UC3, 255.0);
 		string suffix = ".png";
-		string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\momentum_mask\\50\\mask_" + num2str(i) + suffix;
+		string wdir = "T:\\专业课\\视频技术\\highway\\CV_helloword\\highway\\momentum_mask\\20\\mask_" + num2str(i) + suffix;
 		imwrite(wdir, mask);
 
 		momentum_result.push_back(mask);
@@ -106,7 +106,7 @@ vector<float> cal_IoU(string mask_dir,string groundtruth_dir)
 //		for (int i = 470; i < 1000; i++) // 从470开始
 
 	{
-		Mat img_gt = imread(Groundtruth_fn[i]);
+		Mat img_gt = imread(Groundtruth_fn[i+n]);
 		Mat mask = imread(mask_fn[i]);
 
 		img_gt = img2binary(img_gt);  // 2值 f32
@@ -137,12 +137,12 @@ int main()
 	glob(Input_dir, Input_fn, false);
 
 // 写图像的时候调用
-//	vector<Mat> mean_bg = mean_filter();
-//	vector<Mat> momentum_bg = momentum_filter();
+	//vector<Mat> mean_bg = mean_filter();
+	//vector<Mat> momentum_bg = momentum_filter();
 
 
-//	vector<float> iou = cal_IoU(mean_mask_th_20_dir, Groundtruth_dir);
-	vector<float> iou = cal_IoU(momentum_mask_th_20_dir, Groundtruth_dir);
+	vector<float> iou = cal_IoU(mean_mask_th_20_dir, Groundtruth_dir);
+//	vector<float> iou = cal_IoU(momentum_mask_th_20_dir, Groundtruth_dir);
 //	vector<float> iou = cal_IoU(mean_mask_th_100_dir, Groundtruth_dir);
 
 	for (int i = 0; i < 1000; i++)
