@@ -10,7 +10,6 @@ test_set_mean = test_set - repmat(mean_face,1,80);
 
 %协方差
 train_cov = train_set_mean' * train_set_mean ;
-%test_cov = test_set * test_set' / (80 - 1);
 [V,D] = eig(train_cov);
 
 % 特征值越往后越大 , 取后两百个特征向量
@@ -19,7 +18,11 @@ highDim_V = highDim_V(:,121:320);
 highDim_V = Norm(highDim_V);
 
 train_V = highDim_V' * train_set_mean;
+test_V = highDim_V'*test_set_mean;
 
+
+accuarcy_1 = KNN(1,train_V,test_V)
+accuarcy_3 = KNN(3,train_V,test_V)
 
 %重构测试
 % test_img = test_set(:,1) - mean_face;
@@ -31,8 +34,8 @@ train_V = highDim_V' * train_set_mean;
 % imshow(uint8(rebuild));
 
 
-% 重构测试
-% test_img = train_set(:,1);
+% % 重构测试
+% test_img = train_set(:,1) - mean_face;
 % 
 % base = highDim_V'*test_img;
 % rebuild = highDim_V * base;
